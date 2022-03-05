@@ -1023,7 +1023,7 @@ contract CharityNFT is ExtendedNFT, ClassifiedNFT {
         feeLevels[0].feePercentage = _defaultFee;
     }
 
-    function addPropertyWithContent(uint256 _tokenId, string calldata _content) public onlyOwner
+    function addPropertyWithContent(uint256 _tokenId, string calldata _content) public onlyMinter
     {
         _addPropertyWithContent( _tokenId, _content);
     }
@@ -1045,6 +1045,8 @@ contract ActivatedByOwner is Ownable {
 }
 
 contract NFTMulticlassPermissiveAuction is ActivatedByOwner {
+
+    using Strings for string;
 
     event AuctionCreated(uint256 indexed tokenClassAuctionID, uint256 timestamp);
     event TokenSold(uint256 indexed tokenID, uint256 indexed tokenClassID, address indexed buyer);
@@ -1107,12 +1109,6 @@ contract NFTMulticlassPermissiveAuction is ActivatedByOwner {
 
     function buyNFT() public payable onlyActive
     {
-        // WARNING!
-        // This function does not refund overpaid amount at the moment.
-        // TODO
-        
-        require(block.timestamp < auctions[0].start_timestamp + auctions[0].duration, "This auction already expired");
-        require(block.timestamp > auctions[0].start_timestamp, "This auction is not yet started");
         require(msg.value > 0, "Cannot donate 0");
 
         uint256 _mintedId = ClassifiedNFT(nft_contract).mintWithClass(0);
@@ -1126,8 +1122,11 @@ contract NFTMulticlassPermissiveAuction is ActivatedByOwner {
 
     function configureNFT(uint256 _tokenId, uint256 _classId) internal
     {
-        //Add Serial Number to the created Token
-        uint256 _amount = msg.value / 1e18;
+        uint256 _amount = msg.value;
+        string memory _property1 = "Donated: ";
+        _property1.concat(toString(_amount));
+        _property1.concat(" at ");
+        _property1.concat(toString(block.timestamp));
         CharityNFT(nft_contract).addPropertyWithContent(_tokenId, toString(_amount));
         CharityNFT(nft_contract).addPropertyWithContent(_tokenId, "This NFT is a confirmation of a donation in support of the victims of the Ukrainian-Russian conflict in 2022");
     }
