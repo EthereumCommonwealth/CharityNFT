@@ -1127,7 +1127,7 @@ contract NFTMulticlassPermissiveAuction is ActivatedByOwner {
         _property1.concat(toString(_amount));
         _property1.concat(" at ");
         _property1.concat(toString(block.timestamp));
-        CharityNFT(nft_contract).addPropertyWithContent(_tokenId, toString(_amount));
+        CharityNFT(nft_contract).addPropertyWithContent(_tokenId, _property1);
         CharityNFT(nft_contract).addPropertyWithContent(_tokenId, "This NFT is a confirmation of a donation in support of the victims of the Ukrainian-Russian conflict in 2022");
     }
 
