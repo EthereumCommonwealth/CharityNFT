@@ -94,18 +94,6 @@ abstract contract Ownable is Context {
     }
 
     /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    /*
-    function renounceOwnership() public virtual onlyOwner {
-        _transferOwnership(address(0));
-    }
-    */
-    /**
      * @dev Transfers ownership of the contract to a new account (`newOwner`).
      * Can only be called by the current owner.
      */
@@ -1122,13 +1110,7 @@ contract NFTMulticlassPermissiveAuction is ActivatedByOwner {
 
     function configureNFT(uint256 _tokenId, uint256 _classId) internal
     {
-        uint256 _amount = msg.value;
-        string memory _property1 = "Donated: ";
-        _property1.concat(toString(_amount));
-        _property1.concat(" at ");
-        _property1.concat(toString(block.timestamp));
-        CharityNFT(nft_contract).addPropertyWithContent(_tokenId, _property1);
-        CharityNFT(nft_contract).addPropertyWithContent(_tokenId, "This NFT is a confirmation of a donation in support of the victims of the Ukrainian-Russian conflict in 2022");
+        CharityNFT(nft_contract).addPropertyWithContent(_tokenId, string(abi.encodePacked("Donated: ", toString(msg.value / 1e18), " CLO at ", toString(block.timestamp))));
     }
 
     function withdrawRevenue() public onlyOwner
