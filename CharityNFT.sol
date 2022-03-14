@@ -128,374 +128,6 @@ abstract contract MinterRole is Ownable {
     }
 }
 
-//https://github.com/willitscale/solidity-util/blob/000a42d4d7c1491cde4381c29d4b775fa7e99aac/lib/Strings.sol#L317-L336
-
-/**
- * Strings Library
- * 
- * In summary this is a simple library of string functions which make simple 
- * string operations less tedious in solidity.
- * 
- * Please be aware these functions can be quite gas heavy so use them only when
- * necessary not to clog the blockchain with expensive transactions.
- * 
- * @author James Lockhart <james@n3tw0rk.co.uk>
- */
-library Strings {
-
-    /**
-     * Concat (High gas cost)
-     * 
-     * Appends two strings together and returns a new value
-     * 
-     * @param _base When being used for a data type this is the extended object
-     *              otherwise this is the string which will be the concatenated
-     *              prefix
-     * @param _value The value to be the concatenated suffix
-     * @return string The resulting string from combinging the base and value
-     */
-    function concat(string memory _base, string memory _value)
-        internal
-        pure
-        returns (string memory) {
-        bytes memory _baseBytes = bytes(_base);
-        bytes memory _valueBytes = bytes(_value);
-
-        assert(_valueBytes.length > 0);
-
-        string memory _tmpValue = new string(_baseBytes.length +
-            _valueBytes.length);
-        bytes memory _newValue = bytes(_tmpValue);
-
-        uint i;
-        uint j;
-
-        for (i = 0; i < _baseBytes.length; i++) {
-            _newValue[j++] = _baseBytes[i];
-        }
-
-        for (i = 0; i < _valueBytes.length; i++) {
-            _newValue[j++] = _valueBytes[i];
-        }
-
-        return string(_newValue);
-    }
-
-    /**
-     * Index Of
-     *
-     * Locates and returns the position of a character within a string
-     * 
-     * @param _base When being used for a data type this is the extended object
-     *              otherwise this is the string acting as the haystack to be
-     *              searched
-     * @param _value The needle to search for, at present this is currently
-     *               limited to one character
-     * @return int The position of the needle starting from 0 and returning -1
-     *             in the case of no matches found
-     */
-    function indexOf(string memory _base, string memory _value)
-        internal
-        pure
-        returns (int) {
-        return _indexOf(_base, _value, 0);
-    }
-
-    /**
-     * Index Of
-     *
-     * Locates and returns the position of a character within a string starting
-     * from a defined offset
-     * 
-     * @param _base When being used for a data type this is the extended object
-     *              otherwise this is the string acting as the haystack to be
-     *              searched
-     * @param _value The needle to search for, at present this is currently
-     *               limited to one character
-     * @param _offset The starting point to start searching from which can start
-     *                from 0, but must not exceed the length of the string
-     * @return int The position of the needle starting from 0 and returning -1
-     *             in the case of no matches found
-     */
-    function _indexOf(string memory _base, string memory _value, uint _offset)
-        internal
-        pure
-        returns (int) {
-        bytes memory _baseBytes = bytes(_base);
-        bytes memory _valueBytes = bytes(_value);
-
-        assert(_valueBytes.length == 1);
-
-        for (uint i = _offset; i < _baseBytes.length; i++) {
-            if (_baseBytes[i] == _valueBytes[0]) {
-                return int(i);
-            }
-        }
-
-        return -1;
-    }
-
-    /**
-     * Length
-     * 
-     * Returns the length of the specified string
-     * 
-     * @param _base When being used for a data type this is the extended object
-     *              otherwise this is the string to be measured
-     * @return uint The length of the passed string
-     */
-    function length(string memory _base)
-        internal
-        pure
-        returns (uint) {
-        bytes memory _baseBytes = bytes(_base);
-        return _baseBytes.length;
-    }
-
-    /**
-     * Sub String
-     * 
-     * Extracts the beginning part of a string based on the desired length
-     * 
-     * @param _base When being used for a data type this is the extended object
-     *              otherwise this is the string that will be used for 
-     *              extracting the sub string from
-     * @param _length The length of the sub string to be extracted from the base
-     * @return string The extracted sub string
-     */
-    function substring(string memory _base, int _length)
-        internal
-        pure
-        returns (string memory) {
-        return _substring(_base, _length, 0);
-    }
-
-    /**
-     * Sub String
-     * 
-     * Extracts the part of a string based on the desired length and offset. The
-     * offset and length must not exceed the lenth of the base string.
-     * 
-     * @param _base When being used for a data type this is the extended object
-     *              otherwise this is the string that will be used for 
-     *              extracting the sub string from
-     * @param _length The length of the sub string to be extracted from the base
-     * @param _offset The starting point to extract the sub string from
-     * @return string The extracted sub string
-     */
-    function _substring(string memory _base, int _length, int _offset)
-        internal
-        pure
-        returns (string memory) {
-        bytes memory _baseBytes = bytes(_base);
-
-        assert(uint(_offset + _length) <= _baseBytes.length);
-
-        string memory _tmp = new string(uint(_length));
-        bytes memory _tmpBytes = bytes(_tmp);
-
-        uint j = 0;
-        for (uint i = uint(_offset); i < uint(_offset + _length); i++) {
-            _tmpBytes[j++] = _baseBytes[i];
-        }
-
-        return string(_tmpBytes);
-    }
-    
-    function split(string memory _base, string memory _value)
-        internal
-        pure
-        returns (string[] memory splitArr) {
-        bytes memory _baseBytes = bytes(_base);
-
-        uint _offset = 0;
-        uint _splitsCount = 1;
-        while (_offset < _baseBytes.length - 1) {
-            int _limit = _indexOf(_base, _value, _offset);
-            if (_limit == -1)
-                break;
-            else {
-                _splitsCount++;
-                _offset = uint(_limit) + 1;
-            }
-        }
-
-        splitArr = new string[](_splitsCount);
-
-        _offset = 0;
-        _splitsCount = 0;
-        while (_offset < _baseBytes.length - 1) {
-
-            int _limit = _indexOf(_base, _value, _offset);
-            if (_limit == - 1) {
-                _limit = int(_baseBytes.length);
-            }
-
-            string memory _tmp = new string(uint(_limit) - _offset);
-            bytes memory _tmpBytes = bytes(_tmp);
-
-            uint j = 0;
-            for (uint i = _offset; i < uint(_limit); i++) {
-                _tmpBytes[j++] = _baseBytes[i];
-            }
-            _offset = uint(_limit) + 1;
-            splitArr[_splitsCount++] = string(_tmpBytes);
-        }
-        return splitArr;
-    }
-
-    /**
-     * Compare To
-     * 
-     * Compares the characters of two strings, to ensure that they have an 
-     * identical footprint
-     * 
-     * @param _base When being used for a data type this is the extended object
-     *               otherwise this is the string base to compare against
-     * @param _value The string the base is being compared to
-     * @return bool Simply notates if the two string have an equivalent
-     */
-    function compareTo(string memory _base, string memory _value)
-        internal
-        pure
-        returns (bool) {
-        bytes memory _baseBytes = bytes(_base);
-        bytes memory _valueBytes = bytes(_value);
-
-        if (_baseBytes.length != _valueBytes.length) {
-            return false;
-        }
-
-        for (uint i = 0; i < _baseBytes.length; i++) {
-            if (_baseBytes[i] != _valueBytes[i]) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Compare To Ignore Case (High gas cost)
-     * 
-     * Compares the characters of two strings, converting them to the same case
-     * where applicable to alphabetic characters to distinguish if the values
-     * match.
-     * 
-     * @param _base When being used for a data type this is the extended object
-     *               otherwise this is the string base to compare against
-     * @param _value The string the base is being compared to
-     * @return bool Simply notates if the two string have an equivalent value
-     *              discarding case
-     */
-    function compareToIgnoreCase(string memory _base, string memory _value)
-        internal
-        pure
-        returns (bool) {
-        bytes memory _baseBytes = bytes(_base);
-        bytes memory _valueBytes = bytes(_value);
-
-        if (_baseBytes.length != _valueBytes.length) {
-            return false;
-        }
-
-        for (uint i = 0; i < _baseBytes.length; i++) {
-            if (_baseBytes[i] != _valueBytes[i] &&
-            _upper(_baseBytes[i]) != _upper(_valueBytes[i])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Upper
-     * 
-     * Converts all the values of a string to their corresponding upper case
-     * value.
-     * 
-     * @param _base When being used for a data type this is the extended object
-     *              otherwise this is the string base to convert to upper case
-     * @return string 
-     */
-    function upper(string memory _base)
-        internal
-        pure
-        returns (string memory) {
-        bytes memory _baseBytes = bytes(_base);
-        for (uint i = 0; i < _baseBytes.length; i++) {
-            _baseBytes[i] = _upper(_baseBytes[i]);
-        }
-        return string(_baseBytes);
-    }
-
-    /**
-     * Lower
-     * 
-     * Converts all the values of a string to their corresponding lower case
-     * value.
-     * 
-     * @param _base When being used for a data type this is the extended object
-     *              otherwise this is the string base to convert to lower case
-     * @return string 
-     */
-    function lower(string memory _base)
-        internal
-        pure
-        returns (string memory) {
-        bytes memory _baseBytes = bytes(_base);
-        for (uint i = 0; i < _baseBytes.length; i++) {
-            _baseBytes[i] = _lower(_baseBytes[i]);
-        }
-        return string(_baseBytes);
-    }
-
-    /**
-     * Upper
-     * 
-     * Convert an alphabetic character to upper case and return the original
-     * value when not alphabetic
-     * 
-     * @param _b1 The byte to be converted to upper case
-     * @return bytes1 The converted value if the passed value was alphabetic
-     *                and in a lower case otherwise returns the original value
-     */
-    function _upper(bytes1 _b1)
-        private
-        pure
-        returns (bytes1) {
-
-        if (_b1 >= 0x61 && _b1 <= 0x7A) {
-            return bytes1(uint8(_b1) - 32);
-        }
-
-        return _b1;
-    }
-
-    /**
-     * Lower
-     * 
-     * Convert an alphabetic character to lower case and return the original
-     * value when not alphabetic
-     * 
-     * @param _b1 The byte to be converted to lower case
-     * @return bytes1 The converted value if the passed value was alphabetic
-     *                and in a upper case otherwise returns the original value
-     */
-    function _lower(bytes1 _b1)
-        private
-        pure
-        returns (bytes1) {
-
-        if (_b1 >= 0x41 && _b1 <= 0x5A) {
-            return bytes1(uint8(_b1) + 32);
-        }
-
-        return _b1;
-    }
-}
-
 library Address {
     /**
      * @dev Returns true if `account` is a contract.
@@ -558,7 +190,7 @@ interface ICallistoNFT {
     function setPrice(uint256 _tokenId, uint256 _amountInWEI, bytes calldata _data) external;
     function withdrawBid(uint256 _tokenId) external returns (bool);
 
-    function getUserContent(uint256 _tokenId) external view returns (string memory _content, bool _all);
+    function getUserContent(uint256 _tokenId) external view returns (string memory _content);
     function setUserContent(uint256 _tokenId, string calldata _content) external returns (bool);
 }
 
@@ -569,11 +201,9 @@ abstract contract NFTReceiver {
 // ExtendedNFT is a version of the CallistoNFT standard token
 // that implements a set of function for NFT content management
 contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
-    using Strings for string;
     using Address for address;
     
     mapping (uint256 => Properties) private _tokenProperties;
-    mapping (uint32 => Fee)         public feeLevels; // level # => (fee receiver, fee percentage)
     
     uint256 public bidLock = 1 days; // Time required for a bid to become withdrawable.
     
@@ -583,16 +213,8 @@ contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
         uint256 timestamp;
     }
     
-    struct Fee {
-        address payable feeReceiver;
-        uint256 feePercentage; // Will be divided by 100000 during calculations
-                               // feePercentage of 100 means 0.1% fee
-                               // feePercentage of 2500 means 2.5% fee
-    }
-    
     mapping (uint256 => uint256) private _asks; // tokenID => price of this token (in WEI)
     mapping (uint256 => Bid)     private _bids; // tokenID => price of this token (in WEI)
-    mapping (uint256 => uint32)  internal _tokenFeeLevels; // tokenID => level ID / 0 by default
 
     uint256 public next_mint_id;
 
@@ -616,11 +238,9 @@ contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
         (uint256 _bid, address payable _bidder,) = bidOf(_tokenId);
         if(priceOf(_tokenId) > 0 && priceOf(_tokenId) <= _bid)
         {
-            uint256 _reward = _bid - _claimFee(_bid, _tokenId);
+            emit TokenTrade(_tokenId, _bidder, ownerOf(_tokenId), _bid);
 
-            emit TokenTrade(_tokenId, _bidder, ownerOf(_tokenId), _reward);
-
-            payable(ownerOf(_tokenId)).transfer(_reward);
+            payable(ownerOf(_tokenId)).transfer(_bid);
 
             //bytes calldata _empty;
             delete _bids[_tokenId];
@@ -667,9 +287,9 @@ contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
         return _tokenProperties[_tokenId].properties[_propertyId];
     }
 
-    function getUserContent(uint256 _tokenId) public view virtual override returns (string memory _content, bool _all)
+    function getUserContent(uint256 _tokenId) public view virtual override returns (string memory _content)
     {
-        return (_tokenProperties[_tokenId].properties[0], true);
+        return (_tokenProperties[_tokenId].properties[0]);
     }
 
     function setUserContent(uint256 _tokenId, string calldata _content) public virtual override returns (bool success)
@@ -691,11 +311,6 @@ contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
         _tokenProperties[_tokenId].properties[_propertyId] = _content;
     }
 
-    function _appendProperty(uint256 _tokenId, uint256 _propertyId, string calldata _content) internal
-    {
-        _tokenProperties[_tokenId].properties[_propertyId] = _tokenProperties[_tokenId].properties[_propertyId].concat(_content);
-    }
-    
     function balanceOf(address owner) public view virtual override returns (uint256) {
         require(owner != address(0), "NFT: balance query for the zero address");
         return _balances[owner];
@@ -744,7 +359,7 @@ contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
         emit NewBid(_tokenId, _bid, _data);
         
         // Send back overpaid amount.
-        // WARHNING: Creates possibility for reentrancy.
+        // WARNING: Creates possibility for reentrancy.
         if (priceOf(_tokenId) < msg.value)
         {
             payable(msg.sender).transfer(msg.value - priceOf(_tokenId));
@@ -807,17 +422,6 @@ contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
         return _owners[tokenId] != address(0);
     }
     
-    function _claimFee(uint256 _amountFrom, uint256 _tokenId) internal returns (uint256)
-    {
-        uint32 _level          = _tokenFeeLevels[_tokenId];
-        address _feeReceiver   = feeLevels[_level].feeReceiver;
-        uint256 _feePercentage = feeLevels[_level].feePercentage;
-        
-        uint256 _feeAmount = _amountFrom * _feePercentage / 100000;
-        payable(_feeReceiver).transfer(_feeAmount);
-        return _feeAmount;        
-    }
-    
     function _safeMint(
         address to,
         uint256 tokenId
@@ -877,7 +481,7 @@ contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
 
         if(to.isContract())
         {
-            NFTReceiver(to).onERC721Received(msg.sender, msg.sender, tokenId, data);
+            NFTReceiver(to).onERC721Received(msg.sender, from, tokenId, data);
         }
 
         emit Transfer(from, to, tokenId);
@@ -900,8 +504,8 @@ contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
 
 interface IClassifiedNFT is ICallistoNFT {
     function setClassForTokenID(uint256 _tokenID, uint256 _tokenClass) external;
-    function addNewTokenClass(uint32 _feeLevel) external;
-    function addTokenClassProperties(uint256 _propertiesCount) external;
+    function addNewTokenClass(string memory _property) external;
+    function addTokenClassProperties(uint256 _propertiesCount, uint256 classId) external;
     function modifyClassProperty(uint256 _classID, uint256 _propertyID, string memory _content) external;
     function getClassProperty(uint256 _classID, uint256 _propertyID) external view returns (string memory);
     function addClassProperty(uint256 _classID) external;
@@ -914,10 +518,8 @@ interface IClassifiedNFT is ICallistoNFT {
 }
 
 abstract contract ClassifiedNFT is MinterRole, ExtendedNFT, IClassifiedNFT {
-    using Strings for string;
 
     mapping (uint256 => string[]) public class_properties;
-    mapping (uint256 => uint32)   public class_feeLevel;
     mapping (uint256 => uint256)  public token_classes;
 
     uint256 public nextClassIndex = 0;
@@ -933,19 +535,17 @@ abstract contract ClassifiedNFT is MinterRole, ExtendedNFT, IClassifiedNFT {
         token_classes[_tokenID] = _tokenClass;
     }
 
-    function addNewTokenClass(uint32 _feeLevel) public onlyOwner override
+    function addNewTokenClass(string memory _property) public onlyOwner override
     {
-        class_properties[nextClassIndex].push("");
-        class_feeLevel[nextClassIndex] = _feeLevel; // Configures who will receive fees from this class of NFTs
-                                                    // Zero sets fees to default address and percentage.
+        class_properties[nextClassIndex].push(_property);
         nextClassIndex++;
     }
 
-    function addTokenClassProperties(uint256 _propertiesCount) public onlyOwner override
+    function addTokenClassProperties(uint256 _propertiesCount, uint256 classId) public onlyOwner override
     {
         for (uint i = 0; i < _propertiesCount; i++)
         {
-            class_properties[nextClassIndex].push("");
+            class_properties[classId].push("");
         }
     }
 
@@ -962,6 +562,11 @@ abstract contract ClassifiedNFT is MinterRole, ExtendedNFT, IClassifiedNFT {
     function addClassProperty(uint256 _classID) public onlyOwner onlyExistingClasses(_classID) override
     {
         class_properties[_classID].push("");
+    }
+
+    function addClassPropertyWithContent(uint256 _classID, string memory _content) public onlyOwner onlyExistingClasses(_classID)
+    {
+        class_properties[_classID].push(_content);
     }
 
     function getClassProperties(uint256 _classID) public view onlyExistingClasses(_classID) override returns (string[] memory)
@@ -989,26 +594,20 @@ abstract contract ClassifiedNFT is MinterRole, ExtendedNFT, IClassifiedNFT {
         //_mint(to, tokenId);
         _newTokenID = mint();
         token_classes[_newTokenID] = classId;
-        _tokenFeeLevels[_newTokenID] = class_feeLevel[classId];
     }
 
-    function appendClassProperty(uint256 _classID, uint256 _propertyID, string memory _content) public onlyOwner onlyExistingClasses(_classID) override
-    {
-        class_properties[_classID][_propertyID] = class_properties[_classID][_propertyID].concat(_content);
-    }
+    function appendClassProperty(uint256 _classID, uint256 _propertyID, string memory _content) public onlyOwner onlyExistingClasses(_classID) override{}
 }
 
 contract CharityNFT is ExtendedNFT, ClassifiedNFT {
 
-    function initialize(string memory name_, string memory symbol_, uint256 _defaultFee) external {
+    function initialize(string memory name_, string memory symbol_) external {
         require(_owner == address(0), "Already initialized");
         _owner = msg.sender;
         emit OwnershipTransferred(address(0), msg.sender);
         bidLock = 1 days;
         _name   = name_;
         _symbol = symbol_;
-        feeLevels[0].feeReceiver   = payable(msg.sender);
-        feeLevels[0].feePercentage = _defaultFee;
     }
 
     function addPropertyWithContent(uint256 _tokenId, string calldata _content) public onlyMinter
@@ -1034,8 +633,6 @@ contract ActivatedByOwner is Ownable {
 
 contract NFTMulticlassPermissiveAuction is ActivatedByOwner {
 
-    using Strings for string;
-
     event AuctionCreated(uint256 indexed tokenClassAuctionID, uint256 timestamp);
     event TokenSold(uint256 indexed tokenID, uint256 indexed tokenClassID, address indexed buyer);
     event NFTContractSet(address indexed newNFTContract, address indexed oldNFTContract);
@@ -1046,12 +643,9 @@ contract NFTMulticlassPermissiveAuction is ActivatedByOwner {
 
     struct NFTAuctionClass
     {
-        uint256 max_supply;
         uint256 amount_sold;
         uint256 start_timestamp;
-        uint256 duration;
         uint256 priceInWei;
-        string[] configuratin_properties;
     }
 
     mapping (uint256 => NFTAuctionClass) public auctions; // Mapping from classID (at NFT contract) to set of variables
@@ -1066,14 +660,13 @@ contract NFTMulticlassPermissiveAuction is ActivatedByOwner {
 
     function createNFTAuction(
         uint256 _classID, 
-        uint256 _start_timestamp, 
-        uint256 _duration,
-        uint256 _already_sold 
+        uint256 _start_timestamp,
+        uint256 _priceInWei
         ) public onlyOwner
     {
-        auctions[_classID].amount_sold     = _already_sold; 
+        auctions[_classID].amount_sold     = 0; 
         auctions[_classID].start_timestamp = _start_timestamp;
-        auctions[_classID].duration        = _duration;
+        auctions[_classID].priceInWei = _priceInWei;
 
         emit AuctionCreated(_classID, block.timestamp);
     }
@@ -1082,7 +675,6 @@ contract NFTMulticlassPermissiveAuction is ActivatedByOwner {
         revenue = _revenue_address;
     }
 
-
     function setNFTContract(address _nftContract) public onlyOwner
     {
         emit NFTContractSet(_nftContract, nft_contract);
@@ -1090,30 +682,27 @@ contract NFTMulticlassPermissiveAuction is ActivatedByOwner {
         nft_contract = _nftContract;
     }
 
-    receive() external payable onlyActive
-    {
-        buyNFT();
-    }
+    receive() external payable {}
 
-    function buyNFT() public payable onlyActive
+    function buyNFT(uint _classID) public payable onlyActive
     {
-        require(msg.value > 0, "Cannot donate 0");
+        require(msg.value >= auctions[_classID].priceInWei, "Insufficient funds");
 
-        uint256 _mintedId = ClassifiedNFT(nft_contract).mintWithClass(0);
-        auctions[0].amount_sold++;
-        configureNFT(_mintedId, 0);
+        uint256 _mintedId = ClassifiedNFT(nft_contract).mintWithClass(_classID);
+        auctions[_classID].amount_sold++;
+        configureNFT(_mintedId);
 
         ClassifiedNFT(nft_contract).transfer(msg.sender, _mintedId, "");
 
-        emit TokenSold(_mintedId, 0, msg.sender);
+        emit TokenSold(_mintedId, _classID, msg.sender);
     }
 
-    function configureNFT(uint256 _tokenId, uint256 _classId) internal
+    function configureNFT(uint256 _tokenId) internal
     {
         CharityNFT(nft_contract).addPropertyWithContent(_tokenId, string(abi.encodePacked("Donated: ", toString(msg.value / 1e18), " CLO at ", toString(block.timestamp))));
     }
 
-    function withdrawRevenue() public onlyOwner
+    function withdrawRevenue() public
     {
         require(msg.sender == revenue, "This action requires revenue permission");
 
