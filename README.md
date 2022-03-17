@@ -1,6 +1,6 @@
 # Charity NFT
 
-This repo contains a code of a contract that was created to help the victims of Russia-Ukraine conflict in 2022. We collect donations and deliver the funds to a czech organization that covers the needs of those who suffered in the event.
+This repo contains a code of a contract that was created to help the victims of Russia-Ukraine conflict in 2022. We collect donations and deliver the funds to a Czech organization that covers the needs of those who suffered in the event.
 
 ## Details
 
