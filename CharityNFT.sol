@@ -591,11 +591,6 @@ abstract contract ClassifiedNFT is MinterRole, ExtendedNFT, IClassifiedNFT {
 
     function appendClassProperty(uint256 _classID, uint256 _propertyID, string memory _content) public onlyOwner onlyExistingClasses(_classID) override{}
 
-    
-    function addClassPropertyWithContent(uint256 _classID, string memory _property) public onlyOwner onlyExistingClasses(_classID)
-    {
-        class_properties[_classID].push(_property);
-    }
 }
 
 contract CharityNFT is ExtendedNFT, ClassifiedNFT {
