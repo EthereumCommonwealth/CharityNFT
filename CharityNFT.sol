@@ -72,13 +72,6 @@ abstract contract Ownable is Context {
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
     /**
-     * @dev Initializes the contract setting the deployer as the initial owner.
-    constructor() {
-        _transferOwnership(_msgSender());
-    }
-    */
-
-    /**
      * @dev Returns the address of the current owner.
      */
     function owner() public view virtual returns (address) {
@@ -240,7 +233,7 @@ contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
         {
             emit TokenTrade(_tokenId, _bidder, ownerOf(_tokenId), _bid);
 
-            payable(ownerOf(_tokenId)).transfer(_bid);
+            bool sent = payable(ownerOf(_tokenId)).send(_bid);
 
             //bytes calldata _empty;
             delete _bids[_tokenId];
@@ -337,14 +330,14 @@ contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
         require(msg.value > _previousBid, "New bid must exceed the existing one");
 
         uint256 _bid;
-        
+        bool sent;
         // Return previous bid if the current one exceeds it.
         if(_previousBid != 0)
         {
-            _previousBidder.transfer(_previousBid);
+            sent = _previousBidder.send(_previousBid);
         }
-        // Refund overpaid amount.
-        if (priceOf(_tokenId) < msg.value)
+        // Refund overpaid amount if price is greater than 0
+        if (priceOf(_tokenId) < msg.value && priceOf(_tokenId) > 0)
         {
             _bid = priceOf(_tokenId);
         }
@@ -360,9 +353,9 @@ contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
         
         // Send back overpaid amount.
         // WARNING: Creates possibility for reentrancy.
-        if (priceOf(_tokenId) < msg.value)
+        if (priceOf(_tokenId) < msg.value && priceOf(_tokenId) > 0)
         {
-            payable(msg.sender).transfer(msg.value - priceOf(_tokenId));
+            sent = payable(msg.sender).send(msg.value - priceOf(_tokenId));
         }
     }
     
@@ -372,7 +365,7 @@ contract ExtendedNFT is ICallistoNFT, ReentrancyGuard {
         require(msg.sender == _bidder, "Can not withdraw someone elses bid");
         require(block.timestamp > _timestamp + bidLock, "Bid is time-locked");
         
-        _bidder.transfer(_bid);
+        bool sent = _bidder.send(_bid);
         delete _bids[_tokenId];
         return true;
     }
@@ -597,6 +590,12 @@ abstract contract ClassifiedNFT is MinterRole, ExtendedNFT, IClassifiedNFT {
     }
 
     function appendClassProperty(uint256 _classID, uint256 _propertyID, string memory _content) public onlyOwner onlyExistingClasses(_classID) override{}
+
+    
+    function addClassPropertyWithContent(uint256 _classID, string memory _property) public onlyOwner onlyExistingClasses(_classID)
+    {
+        class_properties[_classID].push(_property);
+    }
 }
 
 contract CharityNFT is ExtendedNFT, ClassifiedNFT {
@@ -708,7 +707,7 @@ contract NFTMulticlassPermissiveAuction is ActivatedByOwner {
 
         emit RevenueWithdrawal(address(this).balance);
 
-        revenue.transfer(address(this).balance);
+        bool sent = revenue.send(address(this).balance);
     }
 
     function toString(uint256 value) internal pure returns (string memory) {
